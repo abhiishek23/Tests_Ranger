@@ -1,15 +1,18 @@
 import requests
 import json
 import pytest
-from main import get_request_data ,base_url,get_updated_request_data ,get_variable ,compare_response_data
+from  Utility.main import get_request_data ,base_url,get_updated_request_data ,get_variable ,compare_response_data
 from requests.auth import HTTPBasicAuth
 import os
 admin_user = 'admin'
 admin_password = 'rangerR0cks!'
-test_data_path = "/Users/absingh/Desktop/Tests_Open_Ranger"
-data_folder_path = "/Users/absingh/Desktop/Tests_Open_Ranger"
-variables_data_path = os.path.join(data_folder_path, "variable_jsons")
 
+
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Gets Tests_Ranger root
+test_data_path = os.path.join(BASE_DIR, "Utility", "test_jsons")
+data_folder_path = os.path.join(BASE_DIR, "Utility", "variable_jsons")
+variables_data_path = data_folder_path
 admin_auth = HTTPBasicAuth(admin_user, admin_password)
 headers = {
         'Accept': 'application/json',

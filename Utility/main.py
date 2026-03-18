@@ -6,7 +6,7 @@ import random
 import string
 import requests
 from requests.auth import HTTPBasicAuth
-from Helper_Directory.Helping_Functions import getEnv , Version
+from Utility.Helper_Directory.Helping_Functions import getEnv , Version
 admin_user = getEnv('XA_ADMIN_USER', 'admin')
 keyadmin_user = getEnv('XA_KEYADMIN_USER', 'keyadmin')
 keyadmin_password = getEnv('XA_KEYADMIN_PASSWORD', 'rangerR0cks!')
@@ -105,7 +105,7 @@ def get_variable(variable_specification, variable_dict, data_folder_path, is_key
                 key = int(key)
             variable = variable[key]
 
-    # logger.info("The variable %s is %s :- ", variable_name, variable)
+    # logger.info("The variable %s is %s :- ", variable_name, variable")
 
     return variable
 
