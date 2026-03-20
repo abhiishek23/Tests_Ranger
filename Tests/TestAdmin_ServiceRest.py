@@ -22,6 +22,7 @@ headers = {
 str_variable_dict = {}
 variable_dict = {}
 def setup_module():
+    global resp_for_repeated_use
     variable_specifier_list = [
         ('plugin_definition_1_id', 'POST', '/plugins/definitions', 'plugin_definition_1_id.json', 'id'),
         ('plugin_definition_1', 'GET', '/plugins/definitions/{plugin_definition_1_id}', None, 'same'),
@@ -40,6 +41,10 @@ def setup_module():
         variable_name = variable_specification[0]
         variable_dict[variable_name] = get_variable(variable_specification, str_variable_dict, variables_data_path)
         str_variable_dict[variable_name] = str(variable_dict[variable_name])
+    request_url_for_repeated_use = base_url + '/plugins/policies/{policy_1_id}'
+    request_url_for_repeated_use = request_url_for_repeated_use.format(**str_variable_dict)
+    resp_for_repeated_use = requests.get(request_url_for_repeated_use, verify=False, auth=admin_auth, headers=headers)
+
 
 
 
@@ -145,6 +150,59 @@ def test_service_connection_validation() :
     assert response_data.get("statusCode") == 0,"Service connection validation failed , check file paths and the service servers"
 
 
+# @pytest.mark.L1
+# @TaskReporter.report_test()
+def test_get_services_by_admin():
+    request_url = base_url + '/plugins/services'
+    # logger.info("The request url is :- %s", request_url)
+    resp = requests.get(request_url, verify=False, auth=admin_auth, headers=headers)
+    # logger.info("The resp status code is :- %s", resp.status_code)
+    # logger.info("The resp content is :- %s", resp.content)
+    assert resp.status_code == 200, "Expected status code not returned"
+
+# @pytest.mark.L1
+# @TaskReporter.report_test()
+def test_get_service_using_id_by_admin():
+
+    request_url = base_url + '/plugins/services/{service_1_id}'
+    request_url = request_url.format(**str_variable_dict)
+
+    # logger.info("The request url is :- %s", request_url)
+    resp = requests.get(request_url, verify=False, auth=admin_auth, headers=headers)
+    # logger.info("The resp status code is :- %s", resp.status_code)
+    # logger.info("The resp content is :- %s", resp.content)
+    assert resp.status_code == 200, "Expected status code not returned"
+
+
+def test_create_service_by_admin():
+    request_url = base_url + '/plugins/services'
+    request_data = get_request_data('test_create_service.json', str_variable_dict, test_data_path)
+    # logger.info("The request url is :- %s", request_url)
+    # logger.info("The request data is :- %s", request_data)
+
+    # ===== ENHANCED CODE COVERAGE VALIDATIONS =====
+
+    # Store original request data for validation
+    original_name = request_data.get('name')
+    original_type = request_data.get('type')
+
+    resp = requests.post(request_url, verify=False, auth=admin_auth, headers=headers, data=json.dumps(request_data))
+    # logger.info("The resp status code is :- %s", resp.status_code)
+    # logger.info("The resp content is :- %s", resp.content)
+    assert resp.status_code == 200, "Expected status code not returned"
+
+    # Test mapViewToEntityBean() method - verify request data was properly mapped
+    created_service = resp.json()
+
+    # Verify mapViewToEntityBean() worked correctly
+    assert created_service.get('name') == original_name, "Service name should match request"
+    assert created_service.get('type') == original_type, "Service type should match request"
+    assert created_service.get('id') is not None, "Service should have an assigned ID"
+    assert created_service.get('configs') is not None, "Service configs should not be None"
+
+
+
+
 
 
 # # @pytest.mark.L1
@@ -184,17 +242,6 @@ def test_get_policy_labels_by_admin():
     # logger.info("The resp status code is :- %s", resp.status_code)
     # logger.info("The resp content is :- %s", resp.content)
     assert resp.status_code == 200, "Expected status code not returned"
-
-# @pytest.mark.L1
-# @TaskReporter.report_test()
-def test_get_services_by_admin():
-    request_url = base_url + '/plugins/services'
-    # logger.info("The request url is :- %s", request_url)
-    resp = requests.get(request_url, verify=False, auth=admin_auth, headers=headers)
-    # logger.info("The resp status code is :- %s", resp.status_code)
-    # logger.info("The resp content is :- %s", resp.content)
-    assert resp.status_code == 200, "Expected status code not returned"
-
 
 
 
@@ -278,8 +325,40 @@ def test_definitions_name_by_admin():
         # logger.info("The resp content is :- %s", resp.content)
         assert resp.status_code == 200, "Expected status code not returned"
 
+# @TaskReporter.report_test()
+def test_resource_lookup_by_admin():
+    request_url = base_url + '/plugins/services/lookupResource/dev_hdfs'
+    request_data = get_request_data('test_resource_lookup.json', str_variable_dict, test_data_path)
+    # logger.info("The request url is :- %s", request_url)
+    # logger.info("The request data is :- %s", request_data)
+    resp = requests.post(request_url, verify=False, auth=admin_auth, headers=headers, data=json.dumps(request_data))
+    # logger.info("The resp status code is :- %s", resp.status_code)
+    # logger.info("The resp content is :- %s", resp.content)
+
+    expected_status_code = 400
+
+    assert resp.status_code == expected_status_code, "Expected status code not returned"
+
+def test_resource_lookup_by_admin_dev_hdfs():
+    request_url = base_url + '/plugins/services/lookupResource/dev_hdfs'
+    path_values = resp_for_repeated_use.json()['resources']['path']['values']
+    lookup_body = {
+        "resourceName": "path",
+        "resources": {
+            "path": path_values
+        },
+        "userInput": "",
+
+    }
+
+    # logger.info("The request url is :- %s", request_url)
+    # logger.info("The request data is :- %s", request_data)
+    resp = requests.post(request_url, verify=False, auth=admin_auth, headers=headers, data=json.dumps(lookup_body))
+    # logger.info("The resp status code is :- %s", resp.status_code)
+    # logger.info("The resp content is :- %s", resp.content)
 
 
+    assert resp.status_code ==200, "Expected status code not returned"
 
 
 
