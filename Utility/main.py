@@ -19,7 +19,13 @@ headers = {
         'Content-Type': 'application/json',
         'X-XSRF-HEADER': 'valid'
     }
-
+global_dict={}
+admin_user = 'admin'
+admin_password = 'rangerR0cks!'
+admin_auth = HTTPBasicAuth(admin_user, admin_password)
+keyadmin_user='keyadmin'
+keyadmin_password='rangerR0cks!'
+keyadmin_auth = HTTPBasicAuth(keyadmin_user, keyadmin_password)
 
 def return_random_str(length=7):
     """Generates a random string of fixed length """
